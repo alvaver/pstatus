@@ -119,7 +119,7 @@ bool Mqtt::connect()
         discoveryVersion();
         discoveryIpAddr();
         discoverySSID();
-        discoveryRRSI();
+        discoveryRSSI();
         discoveryHeapFree();
         discoveryUptime();
 
@@ -230,12 +230,12 @@ void Mqtt::discoverySSID()
     _client->publish(topic, config, true);
 }
 
-void Mqtt::discoveryRRSI()
+void Mqtt::discoveryRSSI()
 {
     char topic[100] = { 0 };
     char config[200] = { 0 };
     sprintf(topic, "homeassistant/sensor/%s/RSSI/config", devId);
-    sprintf(config, "{\"name\":\"SSID\",\"icon\":\"mdi:access-point-network\","
+    sprintf(config, "{\"name\":\"RSSI\",\"icon\":\"mdi:access-point-network\","
     "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.RSSI}}\"}", tInfoInfo);
     _client->publish(topic, config, true);
 }
@@ -255,7 +255,7 @@ void Mqtt::discoveryUptime()
     char topic[100] = { 0 };
     char config[200] = { 0 };
     sprintf(topic, "homeassistant/sensor/%s/Uptime/config", devId);
-    sprintf(config, "{\"name\":\"HeapFree\",\"icon\":\"mdi:clock-time-four-outline\","
+    sprintf(config, "{\"name\":\"Uptime\",\"icon\":\"mdi:clock-time-four-outline\","
     "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.Uptime}}\"}", tInfoInfo);
     _client->publish(topic, config, true);
 }

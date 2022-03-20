@@ -39,7 +39,7 @@ private:
     void discoveryVersion();
     void discoveryIpAddr();
     void discoverySSID();
-    void discoveryRRSI();
+    void discoveryRSSI();
     void discoveryHeapFree();
     void discoveryUptime();
 
