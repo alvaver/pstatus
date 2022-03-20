@@ -33,7 +33,7 @@ namespace
 #ifdef ESP8266
         wifi_get_macaddr(STATION_IF, mac);
 #else
-        esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+        esp_read_mac(mac, ESP_MAC_WIFI_STA);
 #endif
         sprintf(devId, "pstatus_%02X%02X%02X", mac[3], mac[4], mac[5]);
         sprintf(tSensorSensor, "%s/%s/%s", TOPIC_SENSOR, devId, TOPIC_SENSOR);
@@ -102,20 +102,26 @@ bool Mqtt::connect()
     _led.ledOn();
     if (_client->connect(devId, _user.c_str(), _pass.c_str(),
                           tInfoStatus, 0, 0, STATE_OFFLINE)) {
-        uint16_t timer;
+
         _client->publish(tInfoStatus, STATE_ONLINE);
 
-        timer = storage.getIntByName(TIK_SENSOR);
-        _client->publish(tSensorTimer, String(timer, DEC).c_str());
-        _client->subscribe(tSensorTimer);
+        subscribeSetsorTimer(storage.getIntByName(TIK_SENSOR));
+        subscribeInfoTimer(storage.getIntByName(TIK_INFO));
+        subscribeCorrection(storage.getFloatByName(COR_SENSOR));
 
-        timer = storage.getIntByName(TIK_INFO);
-        _client->publish(tInfoTimer, String(timer, DEC).c_str());
-        _client->subscribe(tInfoTimer);
+        discoveryVoltage();
+        discoveryCurrent();
+        discoveryPower();
+        discoveryEnergy();
+        discoveryFrequency();
+        discoveryPF();
 
-        float corr = storage.getFloatByName(COR_SENSOR);
-        _client->publish(tSensorCorr, String(corr, 1).c_str());
-        _client->subscribe(tSensorCorr);
+        discoveryVersion();
+        discoveryIpAddr();
+        discoverySSID();
+        discoveryRRSI();
+        discoveryHeapFree();
+        discoveryUptime();
 
         Serial.printf("[MQTT] Connection to '%s:%d' user='%s' OK\n",
                         _addr.c_str(), _port, _user.c_str());
@@ -127,6 +133,149 @@ bool Mqtt::connect()
     _led.ledOff();
 
     return res;
+}
+
+void Mqtt::discoveryVoltage()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/Voltage/config", devId);
+    sprintf(config, "{\"device_class\":\"voltage\",\"name\":\"Voltage\","
+    "\"unit_of_measurement\":\"V\",\"icon\":\"mdi:speedometer\",\"state_topic\":\"%s\","
+    "\"value_template\":\"{{value_json.Voltage}}\"}", tSensorSensor);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryCurrent()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/Current/config", devId);
+    sprintf(config, "{\"device_class\":\"current\",\"name\":\"Current\","
+    "\"unit_of_measurement\":\"A\",\"icon\":\"mdi:speedometer\",\"state_topic\":\"%s\","
+    "\"value_template\":\"{{value_json.Current}}\"}", tSensorSensor);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryPower()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/Power/config", devId);
+    sprintf(config, "{\"device_class\":\"power\",\"name\":\"Power\","
+    "\"unit_of_measurement\":\"W\",\"icon\":\"mdi:speedometer\",\"state_topic\":\"%s\","
+    "\"value_template\":\"{{value_json.Power}}\"}", tSensorSensor);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryEnergy()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/Energy/config", devId);
+    sprintf(config, "{\"device_class\":\"energy\",\"name\":\"Energy\","
+    "\"unit_of_measurement\":\"kWh\",\"icon\":\"mdi:counter\",\"state_topic\":\"%s\","
+    "\"value_template\":\"{{value_json.Energy}}\"}", tSensorSensor);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryFrequency()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/Frequency/config", devId);
+    sprintf(config, "{\"device_class\":\"frequency\",\"name\":\"Frequency\","
+    "\"unit_of_measurement\":\"kWh\",\"icon\":\"mdi:lightning-bolt\",\"state_topic\":\"%s\","
+    "\"value_template\":\"{{value_json.Frequency}}\"}", tSensorSensor);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryPF()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/PF/config", devId);
+    sprintf(config, "{\"device_class\":\"power_factor\",\"name\":\"PF\",\"icon\":\"mdi:lightning-bolt\","
+    "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.PF}}\"}", tSensorSensor);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryVersion()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/Version/config", devId);
+    sprintf(config, "{\"name\":\"Version\",\"icon\":\"mdi:information-outline\","
+    "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.Version}}\"}", tInfoInfo);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryIpAddr()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/IpAddr/config", devId);
+    sprintf(config, "{\"name\":\"IpAddr\",\"icon\":\"mdi:wifi\","
+    "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.IpAddr}}\"}", tInfoInfo);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoverySSID()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/SSID/config", devId);
+    sprintf(config, "{\"name\":\"SSID\",\"icon\":\"mdi:wifi\","
+    "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.SSID}}\"}", tInfoInfo);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryRRSI()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/RSSI/config", devId);
+    sprintf(config, "{\"name\":\"SSID\",\"icon\":\"mdi:access-point-network\","
+    "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.RSSI}}\"}", tInfoInfo);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryHeapFree()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/HeapFree/config", devId);
+    sprintf(config, "{\"name\":\"HeapFree\",\"icon\":\"mdi:memory\","
+    "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.HeapFree}}\"}", tInfoInfo);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::discoveryUptime()
+{
+    char topic[100] = { 0 };
+    char config[200] = { 0 };
+    sprintf(topic, "homeassistant/sensor/%s/Uptime/config", devId);
+    sprintf(config, "{\"name\":\"HeapFree\",\"icon\":\"mdi:clock-time-four-outline\","
+    "\"state_topic\":\"%s\",\"value_template\":\"{{value_json.Uptime}}\"}", tInfoInfo);
+    _client->publish(topic, config, true);
+}
+
+void Mqtt::subscribeSetsorTimer(uint16_t timer)
+{
+    _client->publish(tSensorTimer, String(timer, DEC).c_str());
+    _client->subscribe(tSensorTimer);
+}
+
+void Mqtt::subscribeInfoTimer(uint16_t timer)
+{
+    _client->publish(tInfoTimer, String(timer, DEC).c_str());
+    _client->subscribe(tInfoTimer);
+}
+
+void Mqtt::subscribeCorrection(float corr)
+{
+    _client->publish(tSensorCorr, String(corr, 1).c_str());
+    _client->subscribe(tSensorCorr);
 }
 
 void Mqtt::setCallbackSensor(std::function<void(uint16_t)> callback)

@@ -27,6 +27,21 @@ private:
     bool connect();
     void startReconnectTimer();
     bool checkReconnectTimer();
+    void subscribeSetsorTimer(uint16_t timer);
+    void subscribeInfoTimer(uint16_t timer);
+    void subscribeCorrection(float corr);
+    void discoveryVoltage();
+    void discoveryCurrent();
+    void discoveryPower();
+    void discoveryEnergy();
+    void discoveryFrequency();
+    void discoveryPF();
+    void discoveryVersion();
+    void discoveryIpAddr();
+    void discoverySSID();
+    void discoveryRRSI();
+    void discoveryHeapFree();
+    void discoveryUptime();
 
     StatusBar &_statusBar;
     Led _led;
