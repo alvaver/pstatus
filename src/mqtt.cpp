@@ -185,7 +185,7 @@ void Mqtt::discoveryFrequency()
     char config[200] = { 0 };
     sprintf(topic, "homeassistant/sensor/%s/Frequency/config", devId);
     sprintf(config, "{\"device_class\":\"frequency\",\"name\":\"Frequency\","
-    "\"unit_of_measurement\":\"kWh\",\"icon\":\"mdi:lightning-bolt\",\"state_topic\":\"%s\","
+    "\"unit_of_measurement\":\"Hz\",\"icon\":\"mdi:lightning-bolt\",\"state_topic\":\"%s\","
     "\"value_template\":\"{{value_json.Frequency}}\"}", tSensorSensor);
     _client->publish(topic, config, true);
 }
